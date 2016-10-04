@@ -25,7 +25,11 @@ router.get('/authenticate', function(req, res, next) {
 });
 
 router.post('/register', function(req, res, next) {
-    // create a sample user
+  /* create a sample user. 
+  1. Doesn't check if user already exists.
+  2. Password saved in plain text.
+  These two issues can be addressed.
+  */
   var newUser = new User({ 
     name: req.body.username, 
     password: req.body.password
@@ -35,6 +39,7 @@ router.post('/register', function(req, res, next) {
   newUser.save(function(err) {
     if (err) throw err;
     console.log('User saved successfully');
+    res.clearCookie('auth_token'); //Clear cookie forcing invalidation of last logged in user.
     res.json({ success: true });
   });
 });
@@ -51,7 +56,10 @@ router.post('/login', function(req, res, next) {
     if (!user) {
       res.json({ success: false, message: 'Authentication failed. User not found.' });
     } else if (user) {
-      //User found, generate TOKEN and set cookie
+      /*User found, generate TOKEN and set cookie
+      *Right now the cookie and the token both expire in 1 day.
+      *To invalidate the login, the cookie can just be cleared.
+      */
       var token = jwt.sign(user, config.secret , {
           expiresIn: "1d" // expires in 24 hours
       });
